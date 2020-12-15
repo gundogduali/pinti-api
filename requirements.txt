@@ -1,0 +1,5 @@
+Flask
+pyrebase
+json
+datetime
+uwsgi
