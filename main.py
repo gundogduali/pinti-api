@@ -263,4 +263,4 @@ def barcodeToProduct(barcode_list):
     return product_dict
 
 if __name__ == '__main__': 
-    app.run()
+    app.run(debug=True)
