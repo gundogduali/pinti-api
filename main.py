@@ -24,6 +24,12 @@ firebase = pyrebase.initialize_app(config)
 
 db = firebase.database()
 
+def noquote(s):
+    return s
+
+pyrebase.pyrebase.quote = noquote
+
+
 from flask import Flask, request, jsonify,Response
 
 app = Flask(__name__)
@@ -32,6 +38,7 @@ app = Flask(__name__)
 def hello():
     return 'Hello, World!'
 
+#OKEY
 @app.route('/create-user', methods=["GET"])
 def createUser():
     name = request.args.get('name')
@@ -50,6 +57,7 @@ def createUser():
     except:
         return {'success' : False}
 
+#FAİL
 @app.route('/find-user', methods=["GET"])
 def findUser():
     email = request.args.get('email')
@@ -60,6 +68,7 @@ def findUser():
         for u in user.each():
             return u.val()
 
+#2ye ayır
 @app.route('/add-product', methods=["GET"])
 def createProduct():
     barcode = request.args.get('barcode',type=str)
@@ -106,6 +115,7 @@ def createProduct():
         except:
             return {'success' : False}
 
+#OKEY
 @app.route('/find-product', methods=["GET"])
 def findProduct():
     barcode = request.args.get('barcode',type= str)
@@ -120,13 +130,16 @@ def findProduct():
             if val['barcode'] == barcode:
                 product_dict[barcode]['Records'] = val
     return product_dict
-        
+
+#FAİL
 @app.route('/get-records', methods=["GET"])
 def getRecords():
     barcode = request.args.get('barcode',type= str)
     records = db.child('Records').order_by_child('barcode').equal_to(barcode).get()
     return records.val()
-    
+  
+
+ #OKEY 
 @app.route('/add-shop', methods=['GET'])
 def addShop():
     shopName = request.args.get('shopname',type=str)
@@ -142,6 +155,7 @@ def addShop():
     except:
         return {'success' : False}
 
+#OKEY
 @app.route('/add-category', methods=['GET'])
 def addCategory():
     categoryName = request.args.get('categoryname',type=str)
@@ -157,6 +171,7 @@ def addCategory():
     except:
         return {'success' : False}
     
+#OKEY
 @app.route('/fetch-categories', methods=['GET'])
 def fetchCategories():
     categories = db.child('Categories').get()
@@ -167,6 +182,7 @@ def fetchCategories():
     else:
         return {'success' : False}
 
+#OKEY
 @app.route('/fetch-shops', methods=['GET'])
 def fetchShops():
     shops = db.child('Shops').get()
@@ -176,7 +192,8 @@ def fetchShops():
             return shop_dict
     else:
         return {'success' : False}
-    
+ 
+#OKEY
 @app.route('/fetch-products-by-shop', methods=['GET'])
 def fetchProductsByShop():
     shopId = request.args.get('shopid',type=str)
