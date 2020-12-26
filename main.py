@@ -24,11 +24,6 @@ firebase = pyrebase.initialize_app(config)
 
 db = firebase.database()
 
-def noquote(s):
-    return s
-
-pyrebase.pyrebase.quote = noquote
-
 
 from flask import Flask, request, jsonify,Response
 
@@ -119,16 +114,7 @@ def createProduct():
 @app.route('/find-product', methods=["GET"])
 def findProduct():
     barcode = request.args.get('barcode',type= str)
-    product_dict = {}
-    result = db.child('Products').get().val()
-    result_records = db.child('Records').get().val()
-    for val in result.keys():
-            if val == barcode:
-                product_dict[val] = result[val]
-                
-    for val in result_records.values():
-            if val['barcode'] == barcode:
-                product_dict[barcode]['Records'] = val
+    product_dict = barcodeToProduct([barcode])
     return product_dict
 
 #FAİL
@@ -266,18 +252,25 @@ def returnRecordId(shopId,barcode):
     
 def barcodeToProduct(barcode_list):
     product_dict = {}
+    product = []
+    product_list = []
+    record_list = []
     result = db.child('Products').get().val()
     result_records = db.child('Records').get().val()
     for barcode in barcode_list:
         for val in result.keys():
             if val == barcode:
-                product_dict[val] = result[val]
-                
-    for barcode in barcode_list:
-        for val in result_records.values():
-            if val['barcode'] == barcode:
-                product_dict[barcode]['Records'] = val
+                result[val]['barcode'] = barcode
+                for val_rec in result_records.values():
+                    if val_rec['barcode'] == barcode:
+                        barc = val_rec.pop("barcode",None)
+                        record_list.append(val_rec)
+                        val_rec['barcode'] = barc
+                result[val]['Records'] = record_list
+                product_list.append(result[val])
+    product_dict['products'] =  product_list
     return product_dict
+
 
 if __name__ == '__main__': 
     app.run(debug=True)
