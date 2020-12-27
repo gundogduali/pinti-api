@@ -160,22 +160,34 @@ def addCategory():
 #OKEY
 @app.route('/fetch-categories', methods=['GET'])
 def fetchCategories():
-    categories = db.child('Categories').get()
+    categories = db.child('Categories').get().val()
+    cat_list = []
     
-    cat_dict = dict(enumerate(categories.val()))
-    if type(categories.val()) == list:
-            return cat_dict
+    for i in range(0,len(categories)):
+        new_cat = {
+            "categoryId": i,
+            "categoryName":categories[i]
+            }
+        cat_list.append(new_cat)
+    
+    if type(categories) == list:
+            return json.dumps(cat_list, indent=4,ensure_ascii=False)
     else:
         return {'success' : False}
 
 #OKEY
 @app.route('/fetch-shops', methods=['GET'])
 def fetchShops():
-    shops = db.child('Shops').get()
-    
-    shop_dict = dict(enumerate(shops.val()))
-    if type(shops.val()) == list:
-            return shop_dict
+    shops = db.child('Shops').get().val()
+    shop_list = []
+    for i in range(0,len(shops)):
+        new_shop = {
+            "shopId" : i,
+            "shopName" : shops[i]
+            }
+        shop_list.append(new_shop)
+    if type(shops) == list:
+            return json.dumps(shop_list,indent=4,ensure_ascii=False)
     else:
         return {'success' : False}
  
@@ -236,7 +248,7 @@ def fetchLastProducts():
             for i in range(0,count):
                 barcode_list.append(my_list[i][0]) 
             products = barcodeToProduct(barcode_list)
-        return json.dumps(products, indent=4)
+        return json.dumps(products, indent=4,ensure_ascii=False)
             
     
 def returnRecordId(shopId,barcode):
@@ -251,7 +263,6 @@ def returnRecordId(shopId,barcode):
         return False
     
 def barcodeToProduct(barcode_list):
-    product_dict = {}
     product = []
     product_list = []
     record_list = []
@@ -260,17 +271,16 @@ def barcodeToProduct(barcode_list):
     for barcode in barcode_list:
         for val in result.keys():
             if val == barcode:
+                record_list.clear()
                 result[val]['barcode'] = barcode
                 for val_rec in result_records.values():
                     if val_rec['barcode'] == barcode:
-                        barc = val_rec.pop("barcode",None)
                         record_list.append(val_rec)
-                        val_rec['barcode'] = barc
                 result[val]['Records'] = record_list
                 product_list.append(result[val])
-    product_dict['products'] =  product_list
-    return product_dict
+    return product_list
 
 
 if __name__ == '__main__': 
-    app.run(debug=True)
+    #app.run(debug=True)
+    print(fetchLastProducts())
