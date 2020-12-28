@@ -25,7 +25,7 @@ firebase = pyrebase.initialize_app(config)
 db = firebase.database()
 
 
-from flask import Flask, request, jsonify,Response
+from flask import Flask, request,Response
 
 app = Flask(__name__)
 
@@ -70,21 +70,10 @@ def createProduct():
     name = request.args.get('name')
     brand = request.args.get('brand')
     categoryId = request.args.get("categoryid")
-    shopId = request.args.get("shopid")
-    location = request.args.get("location")
-    price = request.args.get("price",type=float)
-    recordDate = request.args.get("recorddate")
     photoURL = request.args.get("photourl")
     
     product = db.child('Products').order_by_key().equal_to(barcode).get()
     
-    new_record = {
-        'barcode' : barcode,
-        'shopId' : shopId,
-        'location' : location,
-        'price' : price,
-        'recordDate' : recordDate
-        }
     
     if type(product.val()) == list:
         new_product = {
@@ -95,20 +84,44 @@ def createProduct():
             }
         try:
             db.child('Products').child(barcode).set(new_product)
-            db.child('Records').push(new_record)
             return {'success' : True}
         except:
             return {'success' : False}
     else:
-        result = returnRecordId(shopId,barcode)
-        if result != False:
-            db.child('Records').child(result).remove()
-            
-        try:
-            db.child('Records').push(new_record)
-            return {'success' : True}
-        except:
             return {'success' : False}
+
+@app.route('/add-record',methods=['GET'])
+def addRecord():
+    barcode = request.args.get('barcode',type=str)
+    ownerId = request.args.get('ownerid',type=str)
+    ownerName = request.args.get('ownername',type=str)
+    shopId = request.args.get("shopid")
+    locationTitle = request.args.get("locationtitle")
+    locationCoordinate = request.args.get("locationcoordinate")
+    price = request.args.get("price",type=float)
+    recordDate = request.args.get("recorddate")
+    
+    new_record = {
+        'barcode':barcode,
+        'ownerId':ownerId,
+        'ownerName':ownerName,
+        'shopId':shopId,
+        'locationTitle':locationTitle,
+        'locationCoordinate':locationCoordinate,
+        'price':price,
+        'recordDate':recordDate
+        }
+    
+    result = returnRecordId(shopId,barcode)
+    if result != False:
+        db.child('Records').child(result).remove()
+    
+    try:
+        db.child('Records').push(new_record)
+        return {'success' : True}
+    except:
+        return {'success' : False}
+    
 
 #OKEY
 @app.route('/find-product', methods=["GET"])
@@ -117,26 +130,26 @@ def findProduct():
     product_dict = barcodeToProduct([barcode])
     return product_dict
 
-#FAİL
-@app.route('/get-records', methods=["GET"])
-def getRecords():
-    barcode = request.args.get('barcode',type= str)
-    records = db.child('Records').order_by_child('barcode').equal_to(barcode).get()
-    return records.val()
-  
-
  #OKEY 
 @app.route('/add-shop', methods=['GET'])
 def addShop():
     shopName = request.args.get('shopname',type=str)
+    photoURL = request.args.get('photourl',type=str)
+    
     shops = db.child('Shops').get().val()
+    
     if shops is None:
         count = 0
     else:
         count = len(shops)
     
+    new_shop = {
+        "shopId" : count,
+        "shopName" : shopName,
+        "photoURL" : photoURL
+        }
     try:
-        db.child('Shops').child(str(count)).set(shopName)
+        db.child('Shops').child(str(count)).set(new_shop)
         return {'success' : True}
     except:
         return {'success' : False}
@@ -145,14 +158,21 @@ def addShop():
 @app.route('/add-category', methods=['GET'])
 def addCategory():
     categoryName = request.args.get('categoryname',type=str)
+    photoURL = request.args.get('photourl',type=str)
+    
     categories = db.child('Categories').get().val()
     if categories is None:
         count = 0
     else:
         count = len(categories)
     
+    new_cat = {
+        "categoryId" : str(count),
+        "categoryName" : categoryName,
+        "photoURL" : photoURL,
+        }
     try:
-        db.child('Categories').child(str(count)).set(categoryName)
+        db.child('Categories').child(str(count)).set(new_cat)
         return {'success' : True}
     except:
         return {'success' : False}
@@ -161,35 +181,21 @@ def addCategory():
 @app.route('/fetch-categories', methods=['GET'])
 def fetchCategories():
     categories = db.child('Categories').get().val()
-    cat_list = []
-    
-    for i in range(0,len(categories)):
-        new_cat = {
-            "categoryId": i,
-            "categoryName":categories[i]
-            }
-        cat_list.append(new_cat)
     
     if type(categories) == list:
-            return json.dumps(cat_list, indent=4,ensure_ascii=False)
+            return json.dumps(categories, indent=4,ensure_ascii=False)
     else:
-        return {'success' : False}
+        return json.dumps(list())
 
 #OKEY
 @app.route('/fetch-shops', methods=['GET'])
 def fetchShops():
     shops = db.child('Shops').get().val()
-    shop_list = []
-    for i in range(0,len(shops)):
-        new_shop = {
-            "shopId" : i,
-            "shopName" : shops[i]
-            }
-        shop_list.append(new_shop)
+    
     if type(shops) == list:
-            return json.dumps(shop_list,indent=4,ensure_ascii=False)
+            return json.dumps(shops,indent=4,ensure_ascii=False)
     else:
-        return {'success' : False}
+        return json.dumps(list())
  
 #OKEY
 @app.route('/fetch-products-by-shop', methods=['GET'])
@@ -257,30 +263,28 @@ def returnRecordId(shopId,barcode):
         for k,v in result.items():
             if v['barcode'] == barcode:
                 return k
-            else:
-                return False
+        return False
     else: 
         return False
     
 def barcodeToProduct(barcode_list):
-    product = []
     product_list = []
-    record_list = []
     result = db.child('Products').get().val()
-    result_records = db.child('Records').get().val()
     for barcode in barcode_list:
         for val in result.keys():
             if val == barcode:
-                record_list.clear()
-                result[val]['barcode'] = barcode
-                for val_rec in result_records.values():
-                    if val_rec['barcode'] == barcode:
-                        record_list.append(val_rec)
-                result[val]['Records'] = record_list
+                result[val]['Records'] = getRecords(val)
                 product_list.append(result[val])
     return product_list
 
+def getRecords(barcode):
+    record_list = []
+    records = db.child('Records').order_by_child('barcode').equal_to(barcode).get().val()
+    for rec in records.values():
+        record_list.append(rec)
+    return record_list
+  
+
 
 if __name__ == '__main__': 
-    #app.run(debug=True)
-    print(fetchLastProducts())
+   app.run(debug=True)
