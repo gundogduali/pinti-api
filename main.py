@@ -280,11 +280,13 @@ def barcodeToProduct(barcode_list):
 def getRecords(barcode):
     record_list = []
     records = db.child('Records').order_by_child('barcode').equal_to(barcode).get().val()
-    for rec in records.values():
-        record_list.append(rec)
+    if isinstance(records,dict):
+        for rec in records.values():
+            record_list.append(rec)
     return record_list
   
 
 
 if __name__ == '__main__': 
    app.run(debug=True)
+
