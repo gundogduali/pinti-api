@@ -90,7 +90,7 @@ def createProduct():
     else:
             return {'success' : False}
 
-@app.route('/add-record',methods=['GET'])
+@app.route('/add-record',methods=['POST'])
 def addRecord():
     barcode = request.args.get('barcode',type=str)
     ownerId = request.args.get('ownerid',type=str)
