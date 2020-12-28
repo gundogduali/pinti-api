@@ -90,12 +90,12 @@ def createProduct():
     else:
             return {'success' : False}
 
-@app.route('/add-record',methods=['POST'])
+@app.route('/add-record',methods=['GET'])
 def addRecord():
     barcode = request.args.get('barcode',type=str)
     ownerId = request.args.get('ownerid',type=str)
     ownerName = request.args.get('ownername',type=str)
-    shopId = request.args.get("shopid")
+    shopId = request.args.get("shopid",type=str)
     locationTitle = request.args.get("locationtitle")
     locationCoordinate = request.args.get("locationcoordinate")
     price = request.args.get("price",type=float)
@@ -259,7 +259,7 @@ def fetchLastProducts():
     
 def returnRecordId(shopId,barcode):
     result = db.child('Records').order_by_child('shopId').equal_to(shopId).get().val()
-    if result != list:
+    if isinstance(result,dict):
         for k,v in result.items():
             if v['barcode'] == barcode:
                 return k
