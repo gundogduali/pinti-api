@@ -127,8 +127,8 @@ def addRecord():
 @app.route('/find-product', methods=["GET"])
 def findProduct():
     barcode = request.args.get('barcode',type= str)
-    product_dict = barcodeToProduct([barcode])
-    return product_dict
+    product = barcodeToProduct([barcode])
+    return json.dumps(product, indent=4,ensure_ascii=False)
 
  #OKEY 
 @app.route('/add-shop', methods=['GET'])
