@@ -144,7 +144,7 @@ def addShop():
         count = len(shops)
     
     new_shop = {
-        "shopId" : count,
+        "shopId" : str(count),
         "shopName" : shopName,
         "photoURL" : photoURL
         }
