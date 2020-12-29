@@ -210,11 +210,11 @@ def fetchProductsByShop():
                 barcode_list.append(val['barcode'])
         product_list = barcodeToProduct(barcode_list)
         if not product_list:
-            return {'success' : False}
+            return json.dumps(list())
         else:
-            return product_list
+            return json.dumps(product_list, indent=4,ensure_ascii=False)
     else:
-        return {'success' : False}
+        return json.dumps(list())
         
 
 @app.route('/fetch-products-by-category', methods=['GET'])
@@ -227,11 +227,11 @@ def fetchProductsByCategory():
             barcode_list.append(val)
         product_list = barcodeToProduct(barcode_list)
         if not product_list:
-            return {'success' : False}
+            return json.dumps(list())
         else:
-            return product_list
+            return json.dumps(product_list, indent=4,ensure_ascii=False)
     else:
-        return {'success' : False}
+        return json.dumps(list())
     
 @app.route('/fetch-last-products', methods=['GET'])
 def fetchLastProducts():
