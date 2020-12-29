@@ -273,7 +273,7 @@ def barcodeToProduct(barcode_list):
     for barcode in barcode_list:
         for val in result.keys():
             if val == barcode:
-                result[val][barcode] = barcode
+                result[val]['barcode'] = barcode
                 result[val]['Records'] = getRecords(val)
                 product_list.append(result[val])
     return product_list
