@@ -130,6 +130,23 @@ def findProduct():
     product = barcodeToProduct([barcode])
     return json.dumps(product, indent=4,ensure_ascii=False)
 
+@app.route('/search-product',methods=['GET'])
+def searchProduct():
+    name = request.args.get('name',type= str)
+    name = name.lower()
+    barcode_list = []
+    products = db.child('Products').get().val()
+    for key,value in products.items():
+        for k,v in value.items():
+            if 'name' in k:
+                v = v.lower()
+                if name in v:
+                    barcode_list.append(key)
+    
+    product_list = barcodeToProduct(barcode_list)
+    return json.dumps(product_list, indent=4,ensure_ascii=False)
+            
+
  #OKEY 
 @app.route('/add-shop', methods=['GET'])
 def addShop():
