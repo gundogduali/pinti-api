@@ -252,25 +252,31 @@ def fetchProductsByCategory():
     
 @app.route('/fetch-last-products', methods=['GET'])
 def fetchLastProducts():
-    my_dict = {}
+    count = request.args.get('count',type=int,default = 10)
+    count = 10 if count <= 0 else count
     my_list = []
     barcode_list = []
     result =  db.child('Records').get().val()
     if type(result) != list:
         for val in result.values():
-            datetime_obj = datetime.strptime(val['recordDate'],'%d.%m.%Y')
-            my_dict[val['barcode']] = datetime_obj
+            datetime_obj = datetime.strptime(val['recordDate'],'%d.%m.%Y %H:%M')
+            my_dict = {
+                'barcode' : val['barcode'],
+                'date' : datetime_obj,
+                }
+            my_list.append(my_dict)
             
-        my_list = sorted(my_dict.items(),key=lambda p: p[1],reverse=True)
-        count = len(my_list)
-        if count > 10:
-            for i in range (0,10):
-                barcode_list.append(my_list[i][0]) 
-            products = barcodeToProduct(barcode_list)
-        else:
-            for i in range(0,count):
-                barcode_list.append(my_list[i][0]) 
-            products = barcodeToProduct(barcode_list)
+        #my_list = sorted(my_list,key=lambda p: p[1],reverse=True)
+        my_list = sorted(my_list, key = lambda k: k["date"],reverse=True)
+        
+        done = set()
+        for d in my_list:
+            if d['barcode'] not in done:
+                done.add(d['barcode'])
+                if len(barcode_list) < count:
+                    barcode_list.append(d['barcode'])
+                    
+        products = barcodeToProduct(barcode_list)
         return json.dumps(products, indent=4,ensure_ascii=False)
             
     
@@ -307,4 +313,3 @@ def getRecords(barcode):
 
 if __name__ == '__main__': 
    app.run(debug=True)
-
