@@ -36,11 +36,13 @@ def hello():
 #OKEY
 @app.route('/create-user', methods=["GET"])
 def createUser():
+    uid = request.args.get('uid')
     name = request.args.get('name')
     email = request.args.get('email')
     profilephotoURL = request.args.get('profilephotourl')
     
     new_user = {
+        "uid" : uid,
         "name" : name,
         "email" : email,
         "profilePhotoURL" : profilephotoURL
@@ -55,8 +57,8 @@ def createUser():
 #FAİL
 @app.route('/find-user', methods=["GET"])
 def findUser():
-    email = request.args.get('email')
-    user = db.child('UserInfos').order_by_child("email").equal_to(email).get()
+    uid = request.args.get('uid')
+    user = db.child('UserInfos').order_by_child("uid").equal_to(uid).get()
     if type(user.val()) == list:
         return Response(status = 404)
     else:
