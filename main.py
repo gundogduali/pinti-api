@@ -92,6 +92,42 @@ def createProduct():
     else:
             return {'success' : False}
 
+@app.route('/delete-product',methods=["GET"])
+def deleteProduct():
+    barcode = request.args.get('barcode')
+    product = db.child('Products').child(barcode).remove()
+    records = db.child('Records').order_by_child('barcode').equal_to(barcode).get().val()
+    for record in records:
+        db.child('Records').child(record).remove()
+    return {'success': True}
+
+@app.route('/delete-record',methods=["GET"])
+def deleteRecord():
+    shopId = request.args.get('shopid')
+    barcode = request.args.get('barcode')
+    records = db.child('Records').order_by_child('barcode').equal_to(barcode).get().val()
+    if isinstance(records,dict):
+        for k,v in records.items():
+            for key,val in v.items():
+                if key == 'shopId':
+                    if val == shopId:
+                        db.child('Records').child(k).remove()
+        return {'success': True}
+    else:
+        return {'success':False}
+    
+
+@app.route('/delete-records',methods=["GET"])
+def deleteRecords():
+    barcode = request.args.get('barcode')
+    records = db.child('Records').order_by_child('barcode').equal_to(barcode).get().val()
+    if isinstance(records,dict):
+        for record in records:
+            db.child('Records').child(record).remove()   
+        return {'success': True}
+    else:
+        return {'success':False}
+
 @app.route('/add-record',methods=['GET'])
 def addRecord():
     barcode = request.args.get('barcode',type=str)
@@ -133,9 +169,10 @@ def findProduct():
     return json.dumps(product, indent=4,ensure_ascii=False)
 
 @app.route('/search-product',methods=['GET'])
-def searchProduct():
-    name = request.args.get('name',type= str)
-    name = name.lower()
+def searchProduct(name):
+    #name = request.args.get('name',type= str)
+    if not name:
+        return json.dumps(list())
     barcode_list = []
     products = db.child('Products').get().val()
     for key,value in products.items():
