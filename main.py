@@ -169,8 +169,8 @@ def findProduct():
     return json.dumps(product, indent=4,ensure_ascii=False)
 
 @app.route('/search-product',methods=['GET'])
-def searchProduct(name):
-    #name = request.args.get('name',type= str)
+def searchProduct():
+    name = request.args.get('name',type= str)
     if not name:
         return json.dumps(list())
     barcode_list = []
