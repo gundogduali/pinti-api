@@ -17,7 +17,8 @@ config = {
     "storageBucket": "pinti-eca.appspot.com",
     "messagingSenderId": "772617968614",
     "appId": "1:772617968614:web:5828afaf504bda0c38d427",
-    "measurementId" : "G-D5QDC8WR09"
+    "measurementId" : "G-D5QDC8WR09",
+    "serviceAccount" : "pinti-eca-firebase-adminsdk-wjj67-4e80117b1a.json"
     }
 
 firebase = pyrebase.initialize_app(config)
