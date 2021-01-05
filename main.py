@@ -349,7 +349,55 @@ def getRecords(barcode):
         for rec in records.values():
             record_list.append(rec)
     return record_list
-  
+
+
+from PIL import Image
+import requests
+from io import BytesIO
+import pytesseract
+from run_model import make_prediction
+import re
+from character_detection import get_numbers
+
+pytesseract.pytesseract.tesseract_cmd = '/app/.apt/usr/bin/tesseract'
+#pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+
+custom_config = r'--oem 1 --psm 8' #+ 'outbase digits'
+
+@app.route('/ocr', methods=["GET"])
+def ocr():
+    try:
+        url = request.args.get('url')
+        #url = 'https://i.ibb.co/HGbFytN/1.png'
+        output = process_image(url)
+        return {"output": output}
+    except:
+        return {"output": ""}
+
+
+def process_image(url):
+    text = ""
+    image = _get_image(url)
+    image = make_prediction(image)
+    number_list = get_numbers(image)
+    
+    if number_list:
+        for number in number_list:
+            number = 255-number
+            # cv2.imshow('number',number)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+            text += pytesseract.image_to_string(number,config=custom_config)
+            
+    #text = pytesseract.image_to_string(image,config=custom_config2)
+    text = re.sub('[^0-9]', '', text)
+    text = text[:-2] + ',' + text[-2:]
+    return text
+
+def _get_image(url):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    return img
 
 
 if __name__ == '__main__': 
